@@ -1,3 +1,4 @@
 To run Terraform manifest you need to install terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli
 then you need to rename file terraform.tfvars.simple to terraform.tfvars and fill in empty spaces in variable's values fields. 
-do ```terraform init``` in console (bash, whatever) and ```terraform plan```. It will show what resources will be created. Then run ```terraform apply```. Now its done.
+do ```terraform init``` in console (bash, whatever) and ```terraform plan```. It will show what resources will be created. Then run ```terraform apply```. Now its done. For working test you can use yours aws cli:  ```aws s3 cp ./index.html s3://${bucketname}/ ``` .
+To erase what you have done you need type ```terraform destroy```. Bucket must be cleaned before that. 
