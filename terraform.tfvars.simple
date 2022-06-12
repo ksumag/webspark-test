@@ -1,0 +1,9 @@
+DomainName = ""
+BucketName = ""
+HostedZoneId = ""
+CertificateArn = ""
+
+
+/*my-access-key = ""
+my-secret-key = ""
+*/
