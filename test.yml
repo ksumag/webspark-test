@@ -1,18 +1,22 @@
-AWSTemplateFormatVersion: 2022-06-10
+AWSTemplateFormatVersion: "2010-09-09"
 Description: test-template
 Parameters:
   DomainName:
     Type: String
     Description: The DNS name of an existing Amazon Route 53 hosted zone
+    Default: mytestdmain.ml
   BucketName:
     Type: String
     Description: Amazon S3 files bucket name
+    Default: topka
   HostedZoneId:
     Type: String
     Description: Amazon Route53 Hosted Zone Id for DomainName
+    Default: Z098398035LSEP9ZQEFRG
   CertificateArn:
     Type: String
     Description: Certificate Link
+    Default: arn:aws:acm:us-east-1:xxxxxxxxxxxx:certificate/473474f2-9cb4-4cea-aeb2-30c2703fbe85
 
 
 
@@ -22,55 +26,47 @@ Resources:
   S3bucket: 
     Type: AWS::S3::Bucket
     Properties: 
-      AccessControl: private
+      AccessControl: Private
       BucketName: !Ref BucketName
 # ============= dns reacord add =========================================
-  myDNS:
-  Type: 'AWS::Route53::RecordSetGroup'
-  Properties:
-    HostedZoneId: !Ref HostedZoneId
-    RecordSets:
-      - Name: !Ref DomainName
-        Type: A
-        AliasTarget:
-          HostedZoneId: !Ref HostedZoneId
-          DNSName: !GetAtt 
-            - myDistribution
-            - DomainName
+  myrecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Ref DomainName
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 #its hardcoded by AWS? O_o https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+            DNSName: !GetAtt myDistribution.DomainName
+            EvaluateTargetHealth: 'false'
  #========= create identity ==================================== 
   identity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: "its me"
-  
- 
-  # myDNSRecord:
-  #   Type: AWS::Route53::RecordSet
-  #   Properties:
-  #     HostedZoneId: !Ref HostedZoneId
-  #     Name: !Ref DomainName
-  #     Type: A
-  #     TTL: '300'
-  #     ResourceRecords: !
-  #      - !GetAtt S3bucket.DomainName    
-# ============= create cloudfront =========================================
+   
+     
+# ============= create CloudFront =========================================
   myDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Origins:
-        - DomainName: !GetAtt S3bucket.RegionalDomainName
-          Id: !Ref BucketName
-          S3OriginConfig:
-            OriginAccessIdentity: "origin-access-identity/cloudfront/!Ref identity"
+          - DomainName: !GetAtt S3bucket.DomainName
+            Id: !Ref BucketName
+            S3OriginConfig:
+              OriginAccessIdentity: !Join
+                - ''
+                - - 'origin-access-identity/cloudfront/'
+                  - !Ref identity
         Enabled: 'true'
         Comment: terraform is better
         
-        Aliases: !GetAtt 
-            - myDistribution
-            - DomainName
-        
+        Aliases: 
+          - !Ref DomainName 
+                
         DefaultCacheBehavior:
           AllowedMethods:
           - GET
@@ -81,18 +77,22 @@ Resources:
             QueryString: 'false'
             Cookies:
               Forward: none
-    #      TrustedSigners:
-          
+              
           ViewerProtocolPolicy: redirect-to-https
+          MinTTL: 0
+          DefaultTTL: 3600
+          MaxTTL: 86400
         PriceClass: PriceClass_200
         Restrictions:
           GeoRestriction:
             RestrictionType: whitelist
             Locations:
-            - AQ
-            - CV
+            - US
+            - CA 
+            - GB
+            - DE
         ViewerCertificate:
-          CloudFrontDefaultCertificate: 'false'
+         # CloudFrontDefaultCertificate: 'false'
           SslSupportMethod: sni-only
           AcmCertificateArn: !Ref CertificateArn
           MinimumProtocolVersion: TLSv1
@@ -102,7 +102,7 @@ Resources:
      Properties:
         Bucket: !Ref BucketName
         PolicyDocument:
-          Version: 2022-06-10
+          Version: "2008-10-17"
           Statement:
             - Action:
                 - 's3:GetObject'
@@ -114,21 +114,14 @@ Resources:
                   - /*
               Principal: 
                  AWS: !Join
-                    - ''
+                    - ' '
                     - - 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity'
                       - !Ref identity
-                 
-              # Condition:
-              #   StringLike:
-              #     'aws:Referer':
-              #       - 'http://www.example.com/*'
-              #       - 'http://example.net/*'
-
-
-
+                        
 
 Outputs:
-  CloudFrontID: !Ref myDistribution
+  CloudFrontID:
+   Value: !Ref myDistribution
   
             
 
