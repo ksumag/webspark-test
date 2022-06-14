@@ -8,7 +8,7 @@ do ```terraform init``` in console (bash, whatever) and ```terraform plan```. It
 To erase what you have done you need type ```terraform destroy```. Bucket must be cleaned before that. 
 
 ===================================================================
-## RUN ON AWS CLODFORMATION (AWS_CLI)
+## RUN ON AWS CLOUDFORMATION (AWS_CLI)
 To run task from aws cli you neet to write in test.yml yours parameters values and run 
 
  ``` 
